@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Calculadora de Calificaciones</title>
+  <style>
+    :root {
+      --bg-color: #f0f4f8;
+      --text-color: #333;
+      --container-bg: #ffffff;
+      --header-bg: #3498db;
+      --header-text: white;
+      --unit-header-bg: #ecf0f1;
+      --unit-header-hover: #d5dbdb;
+      --button-color: #3498db;
+      --button-hover: #2980b9;
+      --result-bg: #2ecc71;
+    }
+
+    .dark-mode {
+      --bg-color: #2c3e50;
+      --text-color: #ecf0f1;
+      --container-bg: #34495e;
+      --header-bg: #2980b9;
+      --header-text: #ecf0f1;
+      --unit-header-bg: #2c3e50;
+      --unit-header-hover: #34495e;
+      --button-color: #3498db;
+      --button-hover: #2980b9;
+      --result-bg: #27ae60;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 20px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
+    }
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--container-bg);
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      padding: 20px;
+    }
+    h1 {
+      color: var(--text-color);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    table {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0 10px;
+    }
+    th, td {
+      padding: 15px;
+      text-align: left;
+      border-bottom: 1px solid var(--unit-header-bg);
+    }
+    th {
+      background-color: var(--header-bg);
+      color: var(--header-text);
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .unit-header {
+      cursor: pointer;
+      background-color: var(--unit-header-bg);
+      font-weight: bold;
+      transition: background-color 0.3s ease;
+    }
+    .unit-header:hover {
+      background-color: var(--unit-header-hover);
+    }
+    .hidden {
+      display: none;
+    }
+    button {
+      background-color: transparent;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      color: var(--button-color);
+      transition: color 0.3s ease;
+    }
+    button:hover {
+      color: var(--button-hover);
+    }
+    .result {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: center;
+      padding: 15px;
+      background-color: var(--result-bg);
+      color: white;
+      border-radius: 4px;
+    }
+    .calculate-btn {
+      display: block;
+      width: 200px;
+      margin: 20px auto;
+      padding: 10px;
+      background-color: var(--button-color);
+      color: white;
+      border: none;
+      border-radius: 4px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background-color 0.3s ease;
+    }
+    .calculate-btn:hover {
+      background-color: var(--button-hover);
+    }
+    .ejercicio {
+      margin-right: 5px;
+    }
+    .calificacion-automatica {
+      background-color: var(--header-bg);
+      color: var(--header-text);
+      padding: 10px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      border-radius: 4px;
+    }
+    .progress-container {
+      width: 100%;
+      background-color: #e0e0e0;
+      border-radius: 4px;
+      margin-top: 20px;
+    }
+    .progress-bar {
+      width: 0;
+      height: 20px;
+      background-color: #4CAF50;
+      border-radius: 4px;
+      transition: width 0.3s ease;
+    }
+    .ejercicios-faltantes {
+      text-align: center;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    .dark-mode-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background-color: var(--button-color);
+      color: white;
+      border: none;
+      padding: 10px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 20px;
+    }
+  </style>
+</head>
+<body>
+  <button class="dark-mode-toggle" onclick="toggleDarkMode()">🌓</button>
+  <div class="container">
+    <h1>Calculadora de Calificaciones</h1>
+    <div id="calificacionAutomatica" class="calificacion-automatica"></div>
+    <div class="progress-container">
+      <div id="progressBar" class="progress-bar"></div>
+    </div>
+    <div id="ejerciciosFaltantes" class="ejercicios-faltantes"></div>
+    <table>
+      <thead>
+        <tr>
+          <th>Unidad</th>
+          <th>Ejercicios Completados</th>
+        </tr>
+      </thead>
+      <tbody id="tablaUnidades"></tbody>
+    </table>
+  </div>
+
+  <script>
+    let unidades = ["DIEDRICO", "ACOTADO", "PERSPECTIVAS", "PERSPECTIVAS2", "NORMATIVA", "NORMATIVA2", "CONJUNTOS"];
+    let temasPorUnidad = [8, 6, 5, 7, 4, 3, 6];
+    let ejerciciosPorTema = [
+      [2, 2, 2, 2, 2, 2, 2, 2],
+      [3, 3, 3, 3, 3, 3],
+      [4, 4, 4, 4, 4],
+      [2, 2, 2, 2, 2, 2, 2],
+      [3, 3, 3, 3],
+      [5, 5, 5],
+      [3, 3, 3, 3, 3, 3]
+    ];
+    const valorEjercicio = 0.012;
+    const calificacionMaxima = 3.00;
+    let ejerciciosCompletados = [];
+
+    function cargarConfiguraciones() {
+      const config = JSON.parse(localStorage.getItem('configuracion'));
+      if (config) {
+        unidades = config.unidades;
+        temasPorUnidad = config.temasPorUnidad;
+        ejerciciosPorTema = config.ejerciciosPorTema;
+        ejerciciosCompletados = config.ejerciciosCompletados || [];
+      }
+    }
+
+    function guardarConfiguraciones() {
+      localStorage.setItem('configuracion', JSON.stringify({
+        unidades, temasPorUnidad, ejerciciosPorTema, ejerciciosCompletados
+      }));
+    }
+
+    function generarTabla() {
+      const tablaUnidades = document.getElementById('tablaUnidades');
+      tablaUnidades.innerHTML = '';
+
+      unidades.forEach((unidad, unidadIndex) => {
+        const unidadRow = document.createElement('tr');
+        unidadRow.classList.add('unit-header');
+        unidadRow.innerHTML = `
+          <td colspan="2">
+            ${unidad}
+            <button onclick="configurarTemas(${unidadIndex})">⚙️</button>
+          </td>
+        `;
+        tablaUnidades.appendChild(unidadRow);
+
+        for (let tema = 0; tema < temasPorUnidad[unidadIndex]; tema++) {
+          const temaRow = document.createElement('tr');
+          temaRow.classList.add(`unidad-${unidadIndex}`, 'hidden');
+          temaRow.innerHTML = `
+            <td>
+              Unidad ${tema + 1}
+              <button onclick="configurarEjercicios(${unidadIndex}, ${tema})">⚙️</button>
+            </td>
+            <td>
+              ${Array(ejerciciosPorTema[unidadIndex][tema])
+                .fill(0)
+                .map((_, ejercicio) => `
+                  <input type="checkbox" class="ejercicio" id="ejercicio-${unidadIndex}-${tema}-${ejercicio}"
+                    ${ejerciciosCompletados.includes(`${unidadIndex}-${tema}-${ejercicio}`) ? 'checked' : ''}>
+                  <label for="ejercicio-${unidadIndex}-${tema}-${ejercicio}">${ejercicio + 1}</label>
+                `)
+                .join(" ")}
+            </td>
+          `;
+          tablaUnidades.appendChild(temaRow);
+        }
+
+        unidadRow.addEventListener('click', () => {
+          document.querySelectorAll(`.unidad-${unidadIndex}`).forEach(row => {
+            row.classList.toggle('hidden');
+          });
+        });
+      });
+    }
+
+    function actualizarCalificacion() {
+      const totalEjercicios = ejerciciosCompletados.length;
+      const totalPuntos = totalEjercicios * valorEjercicio;
+      const calificacionElement = document.getElementById('calificacionAutomatica');
+      calificacionElement.textContent = `Calificación actual: ${totalPuntos.toFixed(3)}`;
+
+      // Actualizar barra de progreso
+      const progressBar = document.getElementById('progressBar');
+      const porcentajeCompletado = (totalPuntos / calificacionMaxima) * 100;
+      progressBar.style.width = `${Math.min(porcentajeCompletado, 100)}%`;
+
+      // Actualizar ejercicios faltantes
+      const ejerciciosFaltantes = Math.ceil((calificacionMaxima - totalPuntos) / valorEjercicio);
+      const ejerciciosFaltantesElement = document.getElementById('ejerciciosFaltantes');
+      ejerciciosFaltantesElement.textContent = `Ejercicios faltantes para nota máxima (3.00 puntos): ${Math.max(0, ejerciciosFaltantes)}`;
+    }
+
+    function configurarTemas(unidadIndex) {
+      const nuevaCantidad = prompt(`Nueva cantidad de unidades para ${unidades[unidadIndex]}:`);
+      if (nuevaCantidad && !isNaN(nuevaCantidad) && parseInt(nuevaCantidad) > 0) {
+        temasPorUnidad[unidadIndex] = parseInt(nuevaCantidad);
+        ejerciciosPorTema[unidadIndex] = Array(parseInt(nuevaCantidad)).fill(2);
+        guardarConfiguraciones();
+        generarTabla();
+        actualizarCalificacion();
+      }
+    }
+
+    function configurarEjercicios(unidadIndex, temaIndex) {
+      const nuevaCantidad = prompt(`Nueva cantidad de ejercicios para Unidad ${temaIndex + 1} (${unidades[unidadIndex]}):`);
+      if (nuevaCantidad && !isNaN(nuevaCantidad) && parseInt(nuevaCantidad) > 0) {
+        ejerciciosPorTema[unidadIndex][temaIndex] = parseInt(nuevaCantidad);
+        guardarConfiguraciones();
+        generarTabla();
+        actualizarCalificacion();
+      }
+    }
+
+    document.addEventListener('change', function(e) {
+      if (e.target.classList.contains('ejercicio')) {
+        const [unidadIndex, tema, ejercicio] = e.target.id.split('-').slice(1);
+        const ejercicioId = `${unidadIndex}-${tema}-${ejercicio}`;
+        if (e.target.checked) {
+          ejerciciosCompletados.push(ejercicioId);
+        } else {
+          ejerciciosCompletados = ejerciciosCompletados.filter(id => id !== ejercicioId);
+        }
+        guardarConfiguraciones();
+        actualizarCalificacion();
+      }
+    });
+
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode');
+      localStorage.setItem('darkMode', document.body.classList.contains('dark-mode'));
+    }
+
+    // Cargar modo oscuro si estaba activado
+    if (localStorage.getItem('darkMode') === 'true') {
+      document.body.classList.add('dark-mode');
+    }
+
+    cargarConfiguraciones();
+    generarTabla();
+    actualizarCalificacion();
+  </script>
+</body>
+</html>
